@@ -28,14 +28,29 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Set up Gradle (cache)
+      # Provision a specific Gradle version so we can run 'gradle wrapper' if needed.
+      - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.9
 
-      - name: Ensure Gradle Wrapper is present and executable
+      # Optional: basic sanity to ensure build scripts exist and are not empty.
+      - name: Check Gradle build scripts
+        shell: bash
+        run: |
+          for f in settings.gradle.kts build.gradle.kts; do
+            if [ ! -s "$f" ]; then
+              echo "ERROR: $f is missing or empty. Add valid Gradle config before building."; exit 1
+            fi
+          done
+
+      # If the wrapper is missing, generate it using the provisioned Gradle and then use it for the build.
+      - name: Bootstrap Gradle Wrapper if missing
         shell: bash
         run: |
           if [ ! -f "./gradlew" ]; then
-            echo "Gradle Wrapper (./gradlew) not found. Generate it locally with: gradle wrapper --gradle-version 8.9"; exit 1
+            echo "Gradle Wrapper not found. Generating with Gradle 8.9..."
+            gradle wrapper --gradle-version 8.9 --distribution-type bin
           fi
           chmod +x ./gradlew
 
