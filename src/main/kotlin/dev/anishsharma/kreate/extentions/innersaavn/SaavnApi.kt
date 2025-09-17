@@ -11,60 +11,69 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-// Disambiguate Ktor client logging types
+// Ktor client logging (aliased to avoid conflicts with util logging)
 import io.ktor.client.plugins.logging.Logging as ClientLogging
 import io.ktor.client.plugins.logging.LogLevel as ClientLogLevel
 import io.ktor.client.plugins.logging.Logger as ClientLogger
 
 class SaavnApi(
-  baseUrl: String,
-  client: HttpClient? = null
+    baseUrl: String,
+    client: HttpClient? = null
 ) {
-  private val json = Json { ignoreUnknownKeys = true; isLenient = true } [web:1274]
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    }
 
-  private val http = client ?: HttpClient {
-    install(ContentNegotiation) { json(json) } [web:1274]
-    install(ClientLogging) {
-      // Use a custom logger to avoid platform binding issues and DEFAULT symbol differences
-      logger = object : ClientLogger {
-        override fun log(message: String) {
-          println(message)
+    private val http = client ?: HttpClient {
+        install(ContentNegotiation) {
+            json(json)
         }
-      } [web:1276]
-      level = ClientLogLevel.INFO
-    } [web:1274]
-    defaultRequest { contentType(ContentType.Application.Json) } [web:1274]
-  }
+        install(ClientLogging) {
+            level = ClientLogLevel.INFO
+            logger = object : ClientLogger {
+                override fun log(message: String) {
+                    println(message)
+                }
+            }
+        }
+        defaultRequest {
+            contentType(ContentType.Application.Json)
+        }
+    }
 
-  private val root = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/" [web:1274]
+    private val root = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
 
-  suspend fun searchSongs(query: String, page: Int = 1): SaavnSearchSongsResponse =
-    http.get("${root}search/songs") {
-      parameter("query", query); parameter("page", page)
-    }.body() [web:1274]
+    suspend fun searchSongs(query: String, page: Int = 1): SaavnSearchSongsResponse =
+        http.get("${root}search/songs") {
+            parameter("query", query)
+            parameter("page", page)
+        }.body()
 
-  suspend fun searchAlbums(query: String, page: Int = 1): SaavnSearchAlbumsResponse =
-    http.get("${root}search/albums") {
-      parameter("query", query); parameter("page", page)
-    }.body() [web:1274]
+    suspend fun searchAlbums(query: String, page: Int = 1): SaavnSearchAlbumsResponse =
+        http.get("${root}search/albums") {
+            parameter("query", query)
+            parameter("page", page)
+        }.body()
 
-  suspend fun searchPlaylists(query: String, page: Int = 1): SaavnSearchPlaylistsResponse =
-    http.get("${root}search/playlists") {
-      parameter("query", query); parameter("page", page)
-    }.body() [web:1274]
+    suspend fun searchPlaylists(query: String, page: Int = 1): SaavnSearchPlaylistsResponse =
+        http.get("${root}search/playlists") {
+            parameter("query", query)
+            parameter("page", page)
+        }.body()
 
-  suspend fun songDetails(id: String): SaavnSongDetailsResponse =
-    http.get("${root}songs") {
-      parameter("id", id)
-    }.body() [web:1274]
+    suspend fun songDetails(id: String): SaavnSongDetailsResponse =
+        http.get("${root}songs") {
+            parameter("id", id)
+        }.body()
 
-  suspend fun albumDetails(id: String): SaavnAlbumDetailsResponse =
-    http.get("${root}albums") {
-      parameter("id", id)
-    }.body() [web:1274]
+    suspend fun albumDetails(id: String): SaavnAlbumDetailsResponse =
+        http.get("${root}albums") {
+            parameter("id", id)
+        }.body()
 
-  suspend fun playlistDetails(id: String): SaavnPlaylistDetailsResponse =
-    http.get("${root}playlists") {
-      parameter("id", id)
-    }.body() [web:1274]
+    suspend fun playlistDetails(id: String): SaavnPlaylistDetailsResponse =
+        http.get("${root}playlists") {
+            parameter("id", id)
+        }.body()
 }
