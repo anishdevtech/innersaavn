@@ -1,3 +1,4 @@
+// settings.gradle.kts (innersaavn standalone)
 import org.gradle.api.initialization.resolve.RepositoriesMode
 
 pluginManagement {
@@ -7,14 +8,12 @@ pluginManagement {
     gradlePluginPortal()
   }
 }
-
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
     google()
     mavenCentral()
-    // add others globally if needed, e.g.:
-    // maven { url = uri("https://jitpack.io") }
+    // maven { url = uri("https://jitpack.io") } // add here if needed, not in build.gradle
   }
 }
 rootProject.name = "innersaavn"
