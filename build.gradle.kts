@@ -58,7 +58,3 @@ android {
   }
 }
 
-repositories {
-  google()
-  mavenCentral()
-}
