@@ -8,13 +8,16 @@ repositories {
 }
 
 dependencies {
+   dependencies {
     implementation(kotlin("stdlib"))
-    // Ktor client + JSON serialization
     implementation("io.ktor:ktor-client-core:2.3.12")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
     implementation("io.ktor:ktor-client-okhttp:2.3.12")
+    implementation("io.ktor:ktor-client-logging:2.3.12") // add this
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-
     testImplementation(kotlin("test"))
+}
+
+   testImplementation(kotlin("test"))
 }
