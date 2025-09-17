@@ -1,7 +1,7 @@
 plugins {
-  kotlin("multiplatform") version "2.2.10"
-  id("com.android.library") version "8.7.3"
-  kotlin("plugin.serialization") version "2.2.10"
+  kotlin("multiplatform")
+  id("com.android.library")
+  kotlin("plugin.serialization")
 }
 
 kotlin {
@@ -47,14 +47,17 @@ kotlin {
 android {
   namespace = "dev.anishsharma.kreate.extentions.innersaavn"
   compileSdk = 36
-  defaultConfig { minSdk = 21 }
+  defaultConfig {
+    minSdk = 21
+  }
   buildTypes {
     debug {}
-    release { isMinifyEnabled = false }
+    release {
+      isMinifyEnabled = false
+    }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
   }
 }
-
