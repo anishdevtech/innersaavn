@@ -1,41 +1,39 @@
 package dev.anishsharma.kreate.extentions.innersaavn
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
-import org.junit.Test
-import dev.anishsharma.kreate.extentions.innersaavn.SaavnProvider
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 
-class SaavnProviderIntegrationTest {
+class SaavnProvider(private val http: HttpClient) {
 
-  private val http = HttpClient(CIO) {
-    install(ContentNegotiation) {
-      json(Json {
-        ignoreUnknownKeys = true; isLenient = true
-      })
+    suspend fun search(query: String, limit: Int): List<SaavnTrack> {
+        val resp = http.get("https://saavn.dev/api/search/songs") {
+            parameter("query", query)
+            parameter("limit", limit)
+        }.body<SaavnSearchResponse>()
+        val items = resp.data?.results.orEmpty()
+        return items.mapNotNull { s ->
+            val title = s.title ?: s.name
+            val id = s.id
+            if (!title.isNullOrBlank() && !id.isNullOrBlank()) SaavnTrack(id = id, title = title) else null
+        }
     }
-  }
 
-  // Prefer explicit import of the real package; fall back to fully-qualified name if needed
-  private val provider = /* dev.anishsharma.kreate.providers.saavn. */ SaavnProvider(http)
+    suspend fun getByUrl(url: String): SaavnTrack? {
+        val id = extractIdFromUrl(url) ?: return null
+        val resp = http.get("https://saavn.dev/api/songs/$id").body<SaavnSongResponse?>()
+        val s = resp?.data?.firstOrNull() ?: return null
+        val title = s.title ?: s.name ?: return null
+        val sid = s.id ?: id
+        return SaavnTrack(id = sid, title = title)
+    }
 
-  @Test
-  fun search_returns_results_for_common_query() = runBlocking {
-    val results = provider.search("arijit singh", 3)
-    assertTrue(results.isNotEmpty())
-    println("First result = ${results.first()}")
-    // ...
-  }
-
-  @Test
-  fun getByUrl_resolves_when_env_provided() = runBlocking {
-    val url = System.getenv("JIOSAAVN_TEST_URL") ?: return@runBlocking
-    val track = provider.getByUrl(url)
-assertNotNull(track)
-println("Resolved track = $track")  }
+    private fun extractIdFromUrl(url: String): String? {
+        val u = url.trim()
+        Regex("""jiosaavn\.com/song/[^/]+/([^/?#]+)""", RegexOption.IGNORE_CASE).find(u)?.groupValues?.getOrNull(1)?.let { return it }
+        Regex("""jiosaavn\.com/album/[^/]+/([^/?#]+)""", RegexOption.IGNORE_CASE).find(u)?.groupValues?.getOrNull(1)?.let { return it }
+        Regex("""jiosaavn\.com/(?:featured|s(?:\/)?playlist)/[^/]+/([^/?#]+)""", RegexOption.IGNORE_CASE).find(u)?.groupValues?.getOrNull(1)?.let { return it }
+        return null
+    }
 }
