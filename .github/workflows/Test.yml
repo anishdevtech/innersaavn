@@ -20,20 +20,19 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # Set working directory to where gradlew lives (change ./Kreate if needed)
-      - name: Show files
-        run: ls -la
-        working-directory: .  # adjust if monorepo
-      - name: Show wrapper files
-        run: ls -la gradle/wrapper || true
-        working-directory: .  # adjust if monorepo
+      - name: Locate gradlew
+        run: |
+          pwd
+          ls -la
+          find . -maxdepth 4 -name "gradlew" -print
 
-      - name: Make wrapper executable (if needed)
+      # Set this to the folder printed by the find step if not repo root
+      - name: Make wrapper executable
         run: chmod +x ./gradlew
-        working-directory: .  # adjust if monorepo
+        working-directory: .  # change to folder containing gradlew
 
       - name: Run unit tests
         env:
           JIOSAAVN_TEST_URL: ${{ vars.JIOSAAVN_TEST_URL }}
         run: ./gradlew :composeApp:testGithubReleaseUnitTest --stacktrace
-        working-directory: .  # adjust if monorepo
+        working-directory: .  # change to folder containing gradlew
