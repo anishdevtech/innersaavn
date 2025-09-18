@@ -7,6 +7,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Use the environment named "Test" so its variables/secrets are available
+    environment:
+      name: Test
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -24,8 +30,26 @@ jobs:
       - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
 
-      # Optional: provide a real JioSaavn song URL to exercise URL resolution test
+      # Run JVM unit tests for composeApp, passing the environment variable from the "Test" environment.
+      # If you stored it as an Environment Variable use vars.JIOSAAVN_TEST_URL; if stored as an Environment Secret use secrets.JIOSAAVN_TEST_URL.
       - name: Run unit tests
         env:
-          JIOSAAVN_TEST_URL: ${{ secrets.JIOSAAVN_TEST_URL }}
+          JIOSAAVN_TEST_URL: ${{ vars.JIOSAAVN_TEST_URL }}
         run: ./gradlew :composeApp:testGithubReleaseUnitTest --stacktrace
+
+      # Upload test reports for inspection (JUnit XML and HTML)
+      - name: Upload JUnit XML results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-results
+          path: |
+            composeApp/build/test-results/testGithubReleaseUnitTest
+
+      - name: Upload HTML test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: |
+            composeApp/build/reports/tests/testGithubReleaseUnitTest
