@@ -1,32 +1,23 @@
 package dev.anishsharma.kreate.extentions.innersaavn
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.request.parameter
-
-class SaavnProvider(private val http: HttpClient) : SaavnDataSource {
+class SaavnApiAdapter(private val api: SaavnApi) : SaavnDataSource {
 
     override suspend fun search(query: String, limit: Int): List<SaavnTrack> {
-        val resp = http.get("https://saavn.dev/api/search/songs") {
-            parameter("query", query)
-            parameter("limit", limit)
-        }.body<SaavnSearchResponse>()
-        val items = resp.data?.results.orEmpty()
-        return items.take(limit).mapNotNull { s ->
+        val resp = api.searchSongs(query, page = 1)
+        return resp.data?.results.orEmpty().take(limit).mapNotNull { s ->
             val title = s.title ?: s.name
             val id = s.id
-            if (!title.isNullOrBlank() && !id.isNullOrBlank()) SaavnTrack(id = id, title = title) else null
+            if (!title.isNullOrBlank() && !id.isNullOrBlank()) SaavnTrack(id, title) else null
         }
     }
 
     override suspend fun getByUrl(url: String): SaavnTrack? {
         val id = extractIdFromUrl(url) ?: return null
-        val resp = http.get("https://saavn.dev/api/songs/$id").body<SaavnSongResponse?>()
-        val s = resp?.data?.firstOrNull() ?: return null
+        val resp = api.songDetails(id)
+        val s = resp.data?.firstOrNull() ?: return null
         val title = s.title ?: s.name ?: return null
         val sid = s.id ?: id
-        return SaavnTrack(id = sid, title = title)
+        return SaavnTrack(sid, title)
     }
 
     private fun extractIdFromUrl(url: String): String? {

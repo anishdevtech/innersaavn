@@ -2,46 +2,16 @@ package dev.anishsharma.kreate.extentions.innersaavn
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 
-// Ktor client logging (aliased to avoid conflicts with util logging)
-import io.ktor.client.plugins.logging.Logging as ClientLogging
-import io.ktor.client.plugins.logging.LogLevel as ClientLogLevel
-import io.ktor.client.plugins.logging.Logger as ClientLogger
-
+/**
+ * Base URL must include the "api/" suffix, e.g., "https://saavn.dev/api/".
+ */
 class SaavnApi(
     baseUrl: String,
-    client: HttpClient? = null
+    private val http: HttpClient
 ) {
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-    }
-
-    private val http = client ?: HttpClient {
-        install(ContentNegotiation) {
-            json(json)
-        }
-        install(ClientLogging) {
-            level = ClientLogLevel.INFO
-            logger = object : ClientLogger {
-                override fun log(message: String) {
-                    println(message)
-                }
-            }
-        }
-        defaultRequest {
-            contentType(ContentType.Application.Json)
-        }
-    }
-
     private val root = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
 
     suspend fun searchSongs(query: String, page: Int = 1): SaavnSearchSongsResponse =
@@ -50,6 +20,12 @@ class SaavnApi(
             parameter("page", page)
         }.body()
 
+    suspend fun songDetails(id: String): SaavnSongDetailsResponse =
+        http.get("${root}songs") {
+            parameter("id", id)
+        }.body()
+
+    // Optional additional endpoints if needed
     suspend fun searchAlbums(query: String, page: Int = 1): SaavnSearchAlbumsResponse =
         http.get("${root}search/albums") {
             parameter("query", query)
@@ -62,11 +38,6 @@ class SaavnApi(
             parameter("page", page)
         }.body()
 
-    suspend fun songDetails(id: String): SaavnSongDetailsResponse =
-        http.get("${root}songs") {
-            parameter("id", id)
-        }.body()
-
     suspend fun albumDetails(id: String): SaavnAlbumDetailsResponse =
         http.get("${root}albums") {
             parameter("id", id)
@@ -77,3 +48,11 @@ class SaavnApi(
             parameter("id", id)
         }.body()
 }
+
+/** Response types used above; customize to your schema or reuse SaavnModels if shapes match. */
+typealias SaavnSearchSongsResponse = SaavnSearchResponse
+typealias SaavnSongDetailsResponse = SaavnSongResponse
+typealias SaavnSearchAlbumsResponse = SaavnSearchResponse
+typealias SaavnSearchPlaylistsResponse = SaavnSearchResponse
+typealias SaavnAlbumDetailsResponse = SaavnSongResponse
+typealias SaavnPlaylistDetailsResponse = SaavnSongResponse

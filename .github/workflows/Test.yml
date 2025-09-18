@@ -31,11 +31,9 @@ jobs:
         shell: bash
         run: |
           echo "PWD=$(pwd)"
-          echo "Top-level files:"
-          ls -la
           WRAP_PATH="$(find . -maxdepth 4 -type f -name 'gradlew' | head -n1)"
           if [ -z "$WRAP_PATH" ]; then
-            echo "::error::Gradle Wrapper not found. Ensure gradlew and gradle/wrapper/* are committed at the project root."
+            echo "::error::Gradle Wrapper not found. Commit gradlew and gradle/wrapper/* at project root."
             exit 1
           fi
           echo "Found wrapper at: $WRAP_PATH"
