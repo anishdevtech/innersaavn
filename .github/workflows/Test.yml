@@ -30,12 +30,12 @@ jobs:
         id: locate_wrapper
         shell: bash
         run: |
-          echo "Current dir: $(pwd)"
-          echo "Repo tree (top-level):"
+          echo "PWD=$(pwd)"
+          echo "Top-level files:"
           ls -la
           WRAP_PATH="$(find . -maxdepth 4 -type f -name 'gradlew' | head -n1)"
           if [ -z "$WRAP_PATH" ]; then
-            echo "::error::Gradle Wrapper not found. Ensure gradlew and gradle/wrapper/* are committed at your project root."
+            echo "::error::Gradle Wrapper not found. Ensure gradlew and gradle/wrapper/* are committed at the project root."
             exit 1
           fi
           echo "Found wrapper at: $WRAP_PATH"
@@ -53,7 +53,18 @@ jobs:
       - name: Run unit tests
         env:
           JIOSAAVN_TEST_URL: ${{ vars.JIOSAAVN_TEST_URL }}
-        run: ./gradlew test --stacktrace
+        shell: bash
+        run: |
+          set -e
+          if ./gradlew -q help --task testDebugUnitTest >/dev/null 2>&1; then
+            TASK="testDebugUnitTest"
+          elif ./gradlew -q help --task testReleaseUnitTest >/dev/null 2>&1; then
+            TASK="testReleaseUnitTest"
+          else
+            TASK="test"
+          fi
+          echo "Running task: $TASK"
+          ./gradlew "$TASK" --stacktrace
         working-directory: ${{ env.GWRAP_DIR }}
 
       - name: Upload JUnit XML results
