@@ -46,6 +46,13 @@ kotlin {
                 implementation(kotlin("test"))
                 implementation("io.ktor:ktor-client-mock:2.3.12")
             }
+       val androidUnitTest by getting {
+      dependencies {
+        implementation("io.ktor:ktor-client-cio:2.3.12") // for HttpClient(CIO)
+        // or, if your test uses OkHttp instead:
+        // implementation("io.ktor:ktor-client-okhttp:2.3.12")
+      }
+    }
         }
     }
 }
