@@ -4,11 +4,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
-// Minimal model used by the tests
-data class SaavnTrack(val id: String, val title: String)
+import dev.anishsharma.kreate.extentions.innersaavn.SaavnTrack
 
 // Minimal integration provider backed by saavn.dev
 class SaavnProvider(private val http: HttpClient) {
