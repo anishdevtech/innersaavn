@@ -1,14 +1,15 @@
 name: Android Unit Tests
-
-on:
-  push:
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     environment:
       name: Test
+    defaults:
+      run:
+        # CHANGE this path to the folder where gradlew lives
+        working-directory: .  # e.g., ./Kreate if monorepo
 
     steps:
       - uses: actions/checkout@v4
@@ -25,14 +26,12 @@ jobs:
           pwd
           ls -la
           find . -maxdepth 4 -name "gradlew" -print
+        working-directory: .
 
-      # Set this to the folder printed by the find step if not repo root
       - name: Make wrapper executable
         run: chmod +x ./gradlew
-        working-directory: .  # change to folder containing gradlew
 
       - name: Run unit tests
         env:
           JIOSAAVN_TEST_URL: ${{ vars.JIOSAAVN_TEST_URL }}
         run: ./gradlew :composeApp:testGithubReleaseUnitTest --stacktrace
-        working-directory: .  # change to folder containing gradlew
